@@ -8,6 +8,7 @@ use App\Services\CartService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class CartController extends Controller
 {
@@ -23,7 +24,7 @@ class CartController extends Controller
         return view('cart.index', compact('items', 'subtotal'));
     }
 
-    public function store(Request $request, Product $product): RedirectResponse
+    public function store(Request $request, Product $product): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'quantity' => ['nullable', 'integer', 'min:1'],
@@ -35,9 +36,15 @@ class CartController extends Controller
             $validated['quantity'] ?? 1
         );
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Produk ditambahkan ke keranjang.',
+                'cartItemCount' => $this->cartService->getItemCount($request->user()),
+            ]);
+        }
+
         return back()->with('success', 'Produk ditambahkan ke keranjang.');
     }
-
     public function update(Request $request, CartItem $cartItem): RedirectResponse
     {
         $validated = $request->validate([

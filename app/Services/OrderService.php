@@ -102,7 +102,11 @@ class OrderService
             // Kosongkan keranjang setelah semua berhasil
             $this->cartService->clear($user);
 
-            return $order->load('items');
+            $order->load('items');
+
+            $user->notify(new \App\Notifications\OrderConfirmationNotification($order));
+
+            return $order;
         });
     }
 }

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $title ?? 'Apotek Abidzar' }} — Kesehatan Lebih Mudah, Setiap Hari.</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +13,26 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="font-sans bg-white text-navy-900 antialiased flex flex-col min-h-screen">
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('cart', {
+                count: {{ $cartItemCount ?? 0 }},
+            });
+
+            Alpine.store('scroll', {
+                lastY: 0,
+                topBarVisible: true,
+                init() {
+                    window.addEventListener('scroll', () => {
+                        const currentY = window.scrollY;
+                        this.topBarVisible = currentY < 40 || currentY < this.lastY;
+                        this.lastY = currentY;
+                    }, { passive: true });
+                }
+            });
+        });
+    </script>
 
     <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-emerald-600 focus:text-white">
         Lewati ke konten utama

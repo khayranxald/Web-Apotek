@@ -129,16 +129,19 @@ class PrescriptionResource extends Resource
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make()
-                    ->using(function (Prescription $record, array $data): Prescription {
-                        if (in_array($data['status'], ['approved', 'rejected']) && $record->status !== $data['status']) {
-                            $data['reviewed_by'] = Auth::id();
-                            $data['reviewed_at'] = now();
-                        }
+                ->using(function (Prescription $record, array $data): Prescription {
+                    $isNewlyReviewed = in_array($data['status'], ['approved', 'rejected']) && $record->status !== $data['status'];
 
-                        $record->update($data);
-
-                        return $record;
-                    }),
+                    if ($isNewlyReviewed) {
+                        $data['reviewed_by'] = Auth::id();
+                        $data['reviewed_at'] = now();
+                    }
+                    $record->update($data);
+                    if ($isNewlyReviewed) {
+                        $record->user->notify(new \App\Notifications\PrescriptionReviewedNotification($record));
+                    }
+                    return $record;
+                }),
             ])
             ->bulkActions([]);
     }

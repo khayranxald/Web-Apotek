@@ -11,11 +11,20 @@ class ShippingService
 
     public function calculate(string $city): float
     {
-        $zone = ShippingZone::where('is_active', true)
-            ->whereRaw('LOWER(city) = ?', [Str::lower(trim($city))])
-            ->first();
+        $normalizedInput = $this->normalize($city);
+
+        $zone = ShippingZone::where('is_active', true)->get()
+            ->first(fn ($zone) => $this->normalize($zone->city) === $normalizedInput);
 
         return $zone ? (float) $zone->cost : self::DEFAULT_COST;
+    }
+
+    protected function normalize(string $city): string
+    {
+        $city = Str::lower(trim($city));
+        $city = preg_replace('/^(kota|kabupaten|kab\.?)\s+/i', '', $city);
+
+        return trim($city);
     }
 
     public function getAllActiveCities(): \Illuminate\Database\Eloquent\Collection

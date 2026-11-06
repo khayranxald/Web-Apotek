@@ -178,8 +178,18 @@ class OrderResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-            ])
+            Tables\Actions\EditAction::make()
+                ->using(function (\App\Models\Order $record, array $data): \App\Models\Order {
+                    $oldStatus = $record->status;
+
+                    $record->update($data);
+
+                    if ($oldStatus !== $data['status']) {
+                        $record->user->notify(new \App\Notifications\OrderStatusUpdatedNotification($record));
+                    }
+                    return $record;
+                }),
+        ])
             ->bulkActions([]);
     }
 
